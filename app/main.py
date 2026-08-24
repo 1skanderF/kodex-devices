@@ -21,7 +21,7 @@ def require_key(x_api_key: str | None) -> None:
     if x_api_key != API_KEY:
         raise HTTPException(status_code=401, detail="invalid api key")
 
-#исправил
+#исправил 
 def fmt_ts(value: str) -> str | None:
     # "2026-08-21T04:05:00" -> "2026-08-21 04:05"
     if value:
@@ -128,8 +128,7 @@ def report_summary():
     sql = """
         SELECT d.site, d.serial, d.model, COUNT(t.id) AS open_tickets
         FROM devices d
-        LEFT JOIN tickets t ON t.device_id = d.id 
-        WHERE status = 'open'
+        LEFT JOIN tickets t ON t.device_id = d.id AND t.status = 'open'
         GROUP BY d.id
         ORDER BY d.site, d.serial
     """
