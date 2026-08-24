@@ -1,7 +1,7 @@
 import os
 
 # Путь к базе. В проде задаётся через .env (см. README).
-DB_PATH = os.environ.get("DB_PATH", "app.db")
+DB_PATH = os.environ.get("DATABASE_PATH", "app.db")
 
 # Ключ для изменяющих запросов.
 API_KEY = os.environ.get("API_KEY", "dev-key")
