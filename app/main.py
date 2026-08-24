@@ -97,13 +97,23 @@ def create_ticket(body: TicketIn, x_api_key: str | None = Header(default=None)):
 
 
 @app.get("/tickets")
-def list_tickets(status: str | None = None, limit: int = 50):
-    sql = "SELECT id, device_id, status, title, description, created_at, resolved_at FROM tickets"
+def list_tickets(status: str | None = None, site: str | None = None, limit: int = 50):
+    sql = """
+        SELECT tickets.id, tickets.device_id, tickets.status, tickets.title,
+        tickets.description, tickets.created_at, tickets.resolved_at, devices.site
+        FROM tickets
+        LEFT JOIN devices ON tickets.device_id = devices.id
+        WHERE 1=1
+    """
+    
     params: list = []
     if status:
-        sql += " WHERE status = ?"
+        sql += " AND status = ?"
         params.append(status)
-    sql += " ORDER BY id LIMIT ?"
+    if site:
+        sql += " AND site = ?"
+        params.append(site)
+    sql += " ORDER BY created_at DESC, tickets.id LIMIT ?"
     params.append(limit)
     with db.connect() as conn:
         rows = conn.execute(sql, params).fetchall()
