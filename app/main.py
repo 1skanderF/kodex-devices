@@ -21,10 +21,13 @@ def require_key(x_api_key: str | None) -> None:
     if x_api_key != API_KEY:
         raise HTTPException(status_code=401, detail="invalid api key")
 
-
-def fmt_ts(value: str) -> str:
+#исправил
+def fmt_ts(value: str) -> str | None:
     # "2026-08-21T04:05:00" -> "2026-08-21 04:05"
-    return value[:16].replace("T", " ")
+    if value:
+        return value[:16].replace("T", " ")
+    else:
+        return None
 
 
 def device_to_dict(row) -> dict:
@@ -119,14 +122,14 @@ def close_ticket(ticket_id: int, x_api_key: str | None = Header(default=None)):
         conn.commit()
     return {"id": ticket_id, "status": "closed", "resolved_at": now}
 
-
+# 
 @app.get("/report/summary")
 def report_summary():
     sql = """
         SELECT d.site, d.serial, d.model, COUNT(t.id) AS open_tickets
         FROM devices d
-        LEFT JOIN tickets t ON t.device_id = d.id
-        WHERE t.status = 'open'
+        LEFT JOIN tickets t ON t.device_id = d.id 
+        WHERE status = 'open'
         GROUP BY d.id
         ORDER BY d.site, d.serial
     """
