@@ -85,7 +85,7 @@ def create_ticket(body: TicketIn, x_api_key: str | None = Header(default=None)):
     with db.connect() as conn:
         dev = conn.execute("SELECT id FROM devices WHERE serial = ?", (body.serial,)).fetchone()
         if dev is None:
-            return {"error": "device not found", "serial": body.serial}
+            raise HTTPException(status_code=422, detail="Uncorrect serial number")
         cur = conn.execute(
             "INSERT INTO tickets (device_id, status, title, description, created_at) "
             "VALUES (?, 'open', ?, ?, ?)",
