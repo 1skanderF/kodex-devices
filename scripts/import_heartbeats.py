@@ -7,14 +7,19 @@
 """
 import json
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app import db
 
 
 def parse_ts(ts: str) -> str:
     """Приводит время из heartbeat к формату базы (YYYY-MM-DDTHH:MM:SS)."""
-    return datetime.fromisoformat(ts).replace(tzinfo=None).isoformat(timespec="seconds")
+    return (
+        datetime.fromisoformat(ts)
+        .astimezone(timezone.utc)
+        .replace(tzinfo=None)
+        .isoformat(timespec="seconds")
+    )
 
 
 def import_file(conn, path: str) -> tuple[int, int]:
