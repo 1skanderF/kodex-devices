@@ -159,3 +159,46 @@ def report_offline(minutes: int = OFFLINE_AFTER_MIN):
     with db.connect() as conn:
         rows = conn.execute(sql, (cutoff,)).fetchall()
     return {"cutoff_utc": cutoff, "minutes": minutes, "devices": [dict(r) for r in rows]}
+
+
+@app.get("/report/time_cut")
+def report_time_cut(date_from: str, date_to: str, site: str | None = None):
+    """Сколько тикетов закрыто за период и среднее время
+    от создания до закрытия, в часах.
+ 
+    date_from / date_to — строки в формате "YYYY-MM-DDTHH:MM:SS" (UTC),
+    фильтр идёт по resolved_at.
+    """
+    sql = """
+        SELECT tickets.created_at, tickets.resolved_at
+        FROM tickets
+        LEFT JOIN devices ON tickets.device_id = devices.id
+        WHERE tickets.status = 'closed'
+          AND tickets.resolved_at >= ?
+          AND tickets.resolved_at < ?
+    """
+    params: list = [date_from, date_to]
+    if site:
+        sql += " AND devices.site = ?"
+        params.append(site)
+ 
+    with db.connect() as conn:
+        rows = conn.execute(sql, params).fetchall()
+ 
+    closed_count = len(rows)
+    avg_resolution_hours = None
+    if closed_count:
+        total_seconds = 0.0
+        for row in rows:
+            created = datetime.fromisoformat(row["created_at"])
+            resolved = datetime.fromisoformat(row["resolved_at"])
+            total_seconds += (resolved - created).total_seconds()
+        avg_resolution_hours = round(total_seconds / closed_count / 3600, 2)
+ 
+    return {
+        "date_from": date_from,
+        "date_to": date_to,
+        "site": site,
+        "closed_tickets": closed_count,
+        "avg_resolution_hours": avg_resolution_hours,
+    }
