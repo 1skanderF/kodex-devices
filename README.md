@@ -33,6 +33,7 @@ python -m scripts.import_heartbeats data/heartbeats_2026-08-21.json
 
 ## API
 
+
 | Метод и путь | Что делает |
 |---|---|
 | `GET /health` | проверка, что сервис жив |
